@@ -11,6 +11,8 @@ import AuthLayout from '@/features/auth/presentation/components/AuthLayout';
 import SocialLogin from '@/features/auth/presentation/components/SocialLogin';
 import {useState} from 'react';
 import {ROUTES} from '@/shared/constants/routes';
+import {useRouter} from 'next/navigation';
+import {loginUser} from '@/src/lib/api';
 
 export default function LoginPage() {
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -21,13 +23,26 @@ export default function LoginPage() {
     formState: {errors, isSubmitting, isValid},
   } = useForm<LoginFormValues>({resolver: zodResolver(loginSchema)});
 
-  const onSubmit = async () => {
+  const router = useRouter();
+
+  const onSubmit = async (data: LoginFormValues) => {
+    setGeneralError(null);
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    } catch (error) {
-      setGeneralError('Something went wrong. Please try again.');
-      throw error;
+      const result = await loginUser({
+        email: data.email,
+        password: data.password,
+      });
+
+      localStorage.setItem('token', result.access_token);
+
+      router.push('/dashboard');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setGeneralError(error.message);
+      } else {
+        setGeneralError('Invalid credentials');
+      }
     }
   };
 
