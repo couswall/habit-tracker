@@ -26,7 +26,8 @@
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
       "@/components/*": ["./components/*"],
-      "@/app/*": ["./app/*"]
+      "@/app/*": ["./app/*"],
+      "@/store/*": ["./store/*"]
     }
   },
   "include": [
