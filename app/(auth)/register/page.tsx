@@ -13,8 +13,9 @@ import {
 import {zodResolver} from '@hookform/resolvers/zod';
 import AuthLayout from '@/features/auth/presentation/components/AuthLayout';
 import SocialLogin from '@/features/auth/presentation/components/SocialLogin';
+import {RegisterUseCase} from '@/features/auth/application/use-cases/register.use-case';
+import {authRepository} from '@/features/auth/infrastructure/repositories';
 import {ROUTES} from '@/shared/constants/routes';
-import {registerUser} from '@/src/lib/api';
 import {useRouter} from 'next/navigation';
 
 export default function RegisterPage() {
@@ -59,14 +60,14 @@ export default function RegisterPage() {
     setGeneralError(null);
 
     try {
-      await registerUser({
-        first_name: data.name,
-        last_name: data.lastName,
+      const useCase = new RegisterUseCase(authRepository);
+      await useCase.execute({
+        firstName: data.name,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
       });
 
-      // opcional: redirigir a login
       router.push(ROUTES.LOGIN);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -76,16 +77,6 @@ export default function RegisterPage() {
       }
     }
   };
-  // const onSubmit = async () => {
-  //   setGeneralError(null);
-  //   try {
-  //     // Simulate API call
-  //     await new Promise((resolve) => setTimeout(resolve, 1500));
-  //   } catch (error) {
-  //     setGeneralError('Something went wrong. Please try again.');
-  //     throw error;
-  //   }
-  // };
 
   return (
     <AuthLayout

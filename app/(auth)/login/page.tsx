@@ -1,18 +1,19 @@
 'use client';
 
+import {useForm} from 'react-hook-form';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
+import {useState} from 'react';
+import {useAppDispatch} from '@/store/hooks';
+import {zodResolver} from '@hookform/resolvers/zod';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
 import PasswordInput from '@/components/molecules/PasswordInput';
-import {useForm} from 'react-hook-form';
-import {LoginFormValues, loginSchema} from '@/features/auth/presentation/validation/login.schema';
-import {zodResolver} from '@hookform/resolvers/zod';
 import AuthLayout from '@/features/auth/presentation/components/AuthLayout';
 import SocialLogin from '@/features/auth/presentation/components/SocialLogin';
-import {useState} from 'react';
+import {login} from '@/features/auth/presentation/store/auth.thunks';
+import {LoginFormValues, loginSchema} from '@/features/auth/presentation/validation/login.schema';
 import {ROUTES} from '@/shared/constants/routes';
-import {useRouter} from 'next/navigation';
-import {loginUser} from '@/src/lib/api';
 
 export default function LoginPage() {
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -23,26 +24,18 @@ export default function LoginPage() {
     formState: {errors, isSubmitting, isValid},
   } = useForm<LoginFormValues>({resolver: zodResolver(loginSchema)});
 
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const onSubmit = async (data: LoginFormValues) => {
     setGeneralError(null);
 
-    try {
-      const result = await loginUser({
-        email: data.email,
-        password: data.password,
-      });
+    const result = await dispatch(login({email: data.email, password: data.password}));
 
-      localStorage.setItem('token', result.access_token);
-
+    if (login.fulfilled.match(result)) {
       router.push('/dashboard');
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setGeneralError(error.message);
-      } else {
-        setGeneralError('Invalid credentials');
-      }
+    } else {
+      setGeneralError(result.payload ?? 'Invalid credentials');
     }
   };
 
