@@ -1,16 +1,15 @@
 'use client';
 
+import {useEffect} from 'react';
 import {Provider} from 'react-redux';
-import {PersistGate} from 'redux-persist/integration/react';
 
-import {persistor, store} from '@/store/store';
+import {restoreSession} from '@/features/auth/presentation/store/auth.thunks';
+import {store} from '@/store/store';
 
 export default function StoreProvider({children}: {children: React.ReactNode}) {
-  return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        {children}
-      </PersistGate>
-    </Provider>
-  );
+  useEffect(() => {
+    store.dispatch(restoreSession());
+  }, []);
+
+  return <Provider store={store}>{children}</Provider>;
 }

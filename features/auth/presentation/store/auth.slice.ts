@@ -1,27 +1,25 @@
 import {createSlice} from '@reduxjs/toolkit';
-import {login} from '@/features/auth/presentation/store/auth.thunks';
+
+import {login, logout, restoreSession} from '@/features/auth/presentation/store/auth.thunks';
 
 interface AuthState {
   token: string | null;
   isLoading: boolean;
+  isRehydrating: boolean;
   error: string | null;
 }
 
 const initialState: AuthState = {
   token: null,
   isLoading: false,
+  isRehydrating: true,
   error: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {
-    clearAuth(state) {
-      state.token = null;
-      state.error = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(login.pending, (state) => {
@@ -35,9 +33,22 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload ?? 'Login failed';
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.isRehydrating = false;
+        state.token = action.payload;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.isRehydrating = false;
+        state.token = null;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.token = null;
+      })
+      .addCase(logout.rejected, (state) => {
+        state.token = null;
       });
   },
 });
 
-export const {clearAuth} = authSlice.actions;
 export default authSlice.reducer;

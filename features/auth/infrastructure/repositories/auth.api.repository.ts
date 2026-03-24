@@ -7,6 +7,8 @@ import {httpClient} from '@/shared/api/httpClient';
 const AUTH_ENDPOINTS = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
+  REFRESH: '/auth/refresh',
+  LOGOUT: '/auth/logout',
 } as const;
 
 export const isAxiosErrorWithDetail = (err: unknown): err is AxiosError<{detail: string}> => {
@@ -43,6 +45,26 @@ export class AuthApiRepository implements IAuthRepository {
         throw new Error(err.response?.data?.detail ?? 'Register failed');
       }
       throw new Error('Register failed');
+    }
+  }
+
+  async refresh(): Promise<AuthToken> {
+    try {
+      const {data} = await httpClient.post<{access_token: string}>(AUTH_ENDPOINTS.REFRESH);
+      return {accessToken: data.access_token};
+    } catch (err) {
+      if (isAxiosErrorWithDetail(err)) {
+        throw new Error(err.response?.data?.detail ?? 'Session expired');
+      }
+      throw new Error('Session expired');
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await httpClient.post(AUTH_ENDPOINTS.LOGOUT);
+    } catch {
+      // best-effort: clear client state regardless of server response
     }
   }
 }

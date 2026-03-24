@@ -17,3 +17,23 @@ export const login = createAsyncThunk<string, LoginCredentials, {rejectValue: st
     }
   }
 );
+
+export const restoreSession = createAsyncThunk<string, void, {rejectValue: string}>(
+  'auth/restoreSession',
+  async (_, {rejectWithValue}) => {
+    try {
+      const token = await authRepository.refresh();
+      return token.accessToken;
+    } catch (err) {
+      if (err instanceof Error) return rejectWithValue(err.message);
+      return rejectWithValue('Session expired');
+    }
+  }
+);
+
+export const logout = createAsyncThunk<void, void, {rejectValue: string}>(
+  'auth/logout',
+  async () => {
+    await authRepository.logout();
+  }
+);

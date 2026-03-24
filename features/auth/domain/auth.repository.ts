@@ -3,4 +3,6 @@ import type {AuthToken, LoginCredentials, RegisterData} from '@/features/auth/do
 export interface IAuthRepository {
   login(credentials: LoginCredentials): Promise<AuthToken>;
   register(data: RegisterData): Promise<void>;
+  refresh(): Promise<AuthToken>;
+  logout(): Promise<void>;
 }

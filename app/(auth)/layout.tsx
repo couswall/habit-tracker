@@ -6,14 +6,18 @@ import {useRouter} from 'next/navigation';
 import {useAppSelector} from '@/store/hooks';
 import {ROUTES} from '@/shared/constants/routes';
 
-export default function Home() {
+export default function AuthLayout({children}: {children: React.ReactNode}) {
   const router = useRouter();
   const {token, isRehydrating} = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (isRehydrating) return;
-    router.replace(token ? ROUTES.DASHBOARD : ROUTES.LOGIN);
+    if (!isRehydrating && token) {
+      router.replace(ROUTES.DASHBOARD);
+    }
   }, [token, isRehydrating, router]);
 
-  return null;
+  if (isRehydrating) return null;
+  if (token) return null;
+
+  return <>{children}</>;
 }
